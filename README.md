@@ -15,7 +15,7 @@ log output over http for esp8266.
 * `make flash` to download the app
 * In order to test the file server demo
 	. test the example interactively on a web browser (assuming IP is 192.168.100.40):
-		- open path `http://192.168.100.40` or `http://192.168.100.40/index.html` to see an HTML web page with upload menu
+		- open path `http://192.168.100.40` or `http://192.168.100.40/index.html` to see an HTML web page
 
 * `make clean` - default clean
 

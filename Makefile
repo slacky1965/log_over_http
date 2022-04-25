@@ -48,6 +48,8 @@ SUBDIRS=    \
 	libesphttpd \
 	user
 
+$(shell echo LIBODIR = .output/$(TARGET)/$(FLAVOR)/lib > libesphttpd.mk)
+
 endif # } PDIR
 
 
@@ -123,8 +125,7 @@ DEPENDS_eagle.app.v6 = \
 #	-DTXRX_RXBUF_DEBUG
 #	-DWLAN_CONFIG_CCX
 CONFIGURATION_DEFINES =	-DICACHE_FLASH \
-                        -DGLOBAL_DEBUG_ON \
-                        -DOTA_FLASH_SIZE_K=$(flash)
+                        -DGLOBAL_DEBUG_ON
 
 DEFINES +=				\
 	$(UNIVERSAL_TARGET_DEFINES)	\
@@ -150,8 +151,6 @@ DDEFINES +=				\
 INCLUDES := $(INCLUDES) -I $(PDIR)include -I $(PDIR)libesphttpd/include
 PDIR := ../$(PDIR)
 sinclude $(PDIR)Makefile
-
-LIBESPHTTPD := $(shell echo LIBODIR = $(LIBODIR) > libesphttpd.mk)
 
 
 flash_size = 4MB-c1

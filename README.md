@@ -2,6 +2,8 @@
 
 log output over http for esp8266.
 
+SDK version: 3.0.6-dev(865fa65)
+
 ## Usage
 
 * `cd /you/path/ESP8266_NONOS_SDK`

@@ -35,26 +35,24 @@ int ICACHE_FLASH_ATTR cgi_log(HttpdConnData *connData) {
     while(str) {
         char *pos, *pstr = str;
 
-        if (pstr) {
+        pos = strpbrk(pstr, key);
+
+        while (pos) {
+            size_t len = pos - pstr;
+            if (len > 0) {
+                httpdSend(connData, pstr, len);
+            }
+            if (*pos == lt) {
+                httpdSend(connData, "&lt", 3);
+            } else if (*pos == gt) {
+                httpdSend(connData, "&gt", 3);
+            }
+            pstr = pos + 1;
             pos = strpbrk(pstr, key);
+        }
 
-            while (pos) {
-                size_t len = pos - pstr;
-                if (len > 0) {
-                    httpdSend(connData, pstr, len);
-                }
-                if (*pos == lt) {
-                    httpdSend(connData, "&lt", 3);
-                } else if (*pos == gt) {
-                    httpdSend(connData, "&gt", 3);
-                }
-                pstr = pos + 1;
-                pos = strpbrk(pstr, key);
-            }
-
-            if (strlen(pstr)) {
-                httpdSend(connData, pstr, strlen(pstr));
-            }
+        if (strlen(pstr)) {
+            httpdSend(connData, pstr, strlen(pstr));
         }
 
         httpdSend(connData, enter, -1);

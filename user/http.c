@@ -30,7 +30,7 @@ int ICACHE_FLASH_ATTR cgi_log(HttpdConnData *connData) {
     char gt = '>';
     char key[] = "<>";
 
-    char *str = get_str_from_queue(false);
+    char *str = get_str_from_queue(true);
 
     while(str) {
         char *pos, *pstr = str;
@@ -58,7 +58,7 @@ int ICACHE_FLASH_ATTR cgi_log(HttpdConnData *connData) {
         }
 
         httpdSend(connData, enter, -1);
-        str = get_str_from_queue(true);
+        str = get_str_from_queue(false);
     }
 
     no_more = false;

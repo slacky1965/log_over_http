@@ -24,6 +24,6 @@ int vasprintf(char **strp, const char *format, va_list ap);
 int log_printf(const char *format, ...);
 void log_put_char(char c);
 void init_log_queue();
-char *get_str_from_queue(bool contin);
+char *get_str_from_queue(bool begin);
 
 #endif /* USER_INCLUDE_LOG_H_ */

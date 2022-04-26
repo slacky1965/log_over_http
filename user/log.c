@@ -23,10 +23,10 @@ static char ICACHE_FLASH_ATTR *trim_str_log_queue(char *str) {
     return str;
 }
 
-char ICACHE_FLASH_ATTR *get_str_from_queue(bool contin) {
+char ICACHE_FLASH_ATTR *get_str_from_queue(bool begin) {
     static int first = 0;
 
-    if (!contin) first = log_queue.first;
+    if (begin) first = log_queue.first;
 
     if (((first + 1) & QUEUE_MASK) == log_queue.last) {
         return NULL;

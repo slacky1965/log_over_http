@@ -239,8 +239,6 @@ flash:
 		$(initdata_addr) ../bin/esp_init_data_default_v08.bin \
 		$(blank_addr2) ../bin/blank.bin
 		
-#		$(FLASH)
-		
 erase_flash:
 	esptool.py \
 		--port $(ESPPORT) \

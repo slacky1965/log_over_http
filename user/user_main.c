@@ -86,13 +86,9 @@ void ICACHE_FLASH_ATTR user_init(void) {
 
     init_log_queue();
 
-    log_printf("\n");
-    log_printf("\n");
-
     log_printf("\n\nSDK version: %s\n", system_get_sdk_version());
 
     espFsInit((void*)(webpages_espfs_start));
-//    espFsInit((void*)(120000));
 	start_wifi_sta();
 	httpdInit(builtInUrls, 80);
 

@@ -84,7 +84,7 @@ void ICACHE_FLASH_ATTR user_init(void) {
     uart_init(BIT_RATE_115200, BIT_RATE_115200);
     os_delay_us(65535);
 
-    os_install_putc1((void *)log_put_char);
+    init_log_queue();
 
     log_printf("\n");
     log_printf("\n");

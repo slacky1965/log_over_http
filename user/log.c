@@ -3,125 +3,86 @@
 
 #include "log.h"
 
-static lstack_elem_t *lstack = NULL;
+static log_queue_t log_queue;
 
-lstack_elem_t* ICACHE_FLASH_ATTR get_lstack() {
-    return lstack;
-}
-
-/* delete color symbols, '\n' from str */
-static char* ICACHE_FLASH_ATTR trim_str_lstack(char *str) {
+/* delete '\n' from str */
+static char ICACHE_FLASH_ATTR *trim_str_log_queue(char *str) {
 
     char *str_dest, *str_source; //, *pos;
 
     str_dest = str_source = str;
 
     do {
-//        if (*str_source == '\033') {
-//            pos = strchr(str_source, 'm');
-//            if (pos) {
-//                str_source = pos + 1;
-//            } else {
-//                str_source++;
-//            }
-//        }
-
         while (*str_source == '\n') str_source++;
-
         if (str_source != str_dest) *str_dest = *str_source;
-
         if (*str_source == '\0') break;
-
         str_dest++;
         str_source++;
-
     } while (1);
 
     return str;
 }
 
-bool ICACHE_FLASH_ATTR write_to_lstack(char *str) {
+char ICACHE_FLASH_ATTR *get_str_from_queue(bool contin) {
+    static int first = 0;
 
-    bool ret = false;
-    static bool contin = false;
-    char *buff = NULL;
-    uint8_t count_lstack = 0;
+    if (!contin) first = log_queue.first;
 
-    lstack_elem_t *lstack_new, *lstack_current, *lstack_prev;
-
-    if (!str) {
-        return ret;
+    if (((first + 1) & QUEUE_MASK) == log_queue.last) {
+        return NULL;
     }
+    char *str = log_queue.queue[first++];
+    first &= QUEUE_MASK;
+
+    return str;
+}
+
+static void ICACHE_FLASH_ATTR add_log_queue(char *str) {
+    static bool contin = false;
+
+    if (str == NULL) return;
 
     if (contin) {
-        for(lstack_current = lstack; lstack_current->next; lstack_current = lstack_current->next);
         if (str[strlen(str)-1] == '\n') contin = false;
-        str = trim_str_lstack(str);
+        str = trim_str_log_queue(str);
         if (*str == 0) {
             os_free(str);
-            return true;
+            return;
         }
-        buff = os_malloc(strlen(lstack_current->str)+strlen(str)+1);
+        char *buff = os_malloc(strlen(log_queue.queue[log_queue.last])+strlen(str)+1);
         if (buff == NULL) {
             log_printf("Error allocation memory. (%s:%u)\n", __FILE__, __LINE__);
-            return ret;
+            return;
         }
-        os_sprintf(buff, "%s%s", lstack_current->str, str);
-        os_free(lstack_current->str);
+        os_sprintf(buff, "%s%s", log_queue.queue[log_queue.last], str);
+        os_free(log_queue.queue[log_queue.last]);
         os_free(str);
-        lstack_current->str = buff;
-        return true;
+        log_queue.queue[log_queue.last] = buff;
+        return;
     }
 
-    lstack_new = os_malloc(sizeof(lstack_elem_t));
 
-    if (lstack_new == NULL) {
-        log_printf("Error allocation memory. (%s:%u)\n", __FILE__, __LINE__);
-        return ret;
+    if (((log_queue.last + 1) & QUEUE_MASK) == log_queue.first) {
+        os_free(log_queue.queue[log_queue.first]);
+        log_queue.queue[log_queue.first++] = NULL;
+        log_queue.first &= QUEUE_MASK;
     }
-
-    lstack_new->next = lstack_new->prev = NULL;
-    lstack_new->str = NULL;
 
     if (str[strlen(str)-1] != '\n') contin = true;
-    lstack_new->str = trim_str_lstack(str);
-
-    if (*(lstack_new->str) == 0) {
-        os_free(lstack_new->str);
-        os_free(lstack_new);
-        return true;
+    str = trim_str_log_queue(str);
+    if (*str == 0) {
+        os_free(str);
+        return;
     }
-
-    if (!lstack) {
-        lstack = lstack_new;
-        ret = true;
-    } else {
-        lstack_current = lstack;
-        for (;;) {
-            if (lstack_current->next) {
-                lstack_current = lstack_current->next;
-                count_lstack++;
-                continue;
-            } else {
-                lstack_current->next = lstack_new;
-                lstack_new->prev = lstack_current;
-                lstack_current = lstack_new;
-                count_lstack++;
-            }
-
-            if (count_lstack > LSTACK_SIZE) {
-                lstack_prev = lstack->next;
-                os_free(lstack_prev->prev->str);
-                os_free(lstack_prev->prev);
-                lstack_prev->prev = NULL;
-                lstack = lstack_prev;
-            }
-            ret = true;
-            break;
-        }
-    }
-    return ret;
+    log_queue.queue[log_queue.last++] = str;
+    log_queue.last &= QUEUE_MASK;
 }
+
+void ICACHE_FLASH_ATTR init_log_queue() {
+    os_install_putc1((void *)log_put_char);
+    os_bzero(&log_queue, sizeof(log_queue_t));
+}
+
 
 static int ICACHE_FLASH_ATTR vscprintf(const char *format, va_list ap) {
     char buff[1];
@@ -165,8 +126,7 @@ int ICACHE_FLASH_ATTR log_printf(const char *format, ...) {
 
     if (buff) {
         ets_uart_printf(buff);
-        write_to_lstack(buff);
-//        os_free(buff);
+        add_log_queue(buff);
     }
     return retval;
 }

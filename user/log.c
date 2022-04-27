@@ -152,11 +152,12 @@ void ICACHE_FLASH_ATTR log_put_char(char c) {
         log_printf(buff);
         len = 0;
         os_bzero(buff, PUT_CHAR_BUFF_LEN);
-        buff[len++] = c;
+        buff[len] = c;
         if (c == '\n') {
             log_printf(buff);
-            len = 0;
             buff[len] = 0;
+        } else {
+            len++;
         }
     }
 }
